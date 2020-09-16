@@ -1,0 +1,33 @@
+<view class='wrap'>
+	<view>
+		<view class='date-show'>
+			<view class='lt-arrow' bindtap='lastMonth'>
+				<image class="icon-month-last"></image>
+			</view>
+			{{year}}年{{month}}月
+			<view class='rt-arrow' bindtap='nextMonth'>
+				<image class="icon-month-next"></image>
+			</view>
+		</view>
+	</view>
+	<view class='header'>
+		<view wx:for='{{date}}' wx:key="idx" wx:for-item="item" class='{{(index == todayIndex) && isTodayWeek ? "weekMark" : ""}}'>
+			{{item}}
+
+		</view>
+	</view>
+	<view class='date-box'>
+		<view wx:for='{{dateArr}}' wx:key="idx" class='{{isToday == item.isToday ? "nowDay" : ""}}' data-date='{{item.isToday}}'>
+			<view class='date-head'>
+				<!-- <view wx:if="{{item.isRecord}}">*</view> -->
+				<view class='{{item.isRecord ? "record":""}}'>{{item.dateNum}}</view>
+			</view>
+		</view>
+	</view>
+
+	<button class="weui-button" bindtap="getMyMatters" open-type="getUserInfo">打卡</button>
+	<button bindtap="addMyMatters" open-type="getUserInfo">添加事项</button>
+	<view>
+		<record-dialog id='popup' title='每日打卡' content='{{matterArr}}' btn_no='稍后打卡' btn_ok='打卡' bind:error="_error" bind:success="onRecord"></record-dialog>
+	</view>
+</view>
