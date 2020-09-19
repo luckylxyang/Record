@@ -10,10 +10,15 @@ Page({
     isTodayWeek: false,
     todayIndex: 0,
     matterArr: [],
+    dialogShow: false,
+    buttons: [{ text: '取消' }, { text: '确定' }],
+    add_matter: '',//保存用户添加的事项
+    dialogRecordShow: false,
+    buttons: [{ text: '取消' }, { text: '确定' }],
+    selected_matters: []//记录用户打卡勾选的事项
   },
 
   onReady: function () {
-    this.popup = this.selectComponent("#popup");
   },
   onLoad: function () {
     let now = new Date();
@@ -106,39 +111,45 @@ Page({
     this.dateInit(year, month);
   },
 
-  showDialog: function (event) {
-    this.popup.showPopup();
-  },
-
-  //取消事件
-  _error() {
-    this.popup.hidePopup();
-  },
-
-
-  onRecord: function (select) {
-    
-    console.log("dialog3" , select);
-    
+  onRecord: function (event) {
+    if (event.detail.index === 0) {
+      this.setData({ dialogRecordShow: false })
+      return
+    }
     wx.showLoading({
       title: '打卡中',
     })
     let self = this
-    this.popup.hidePopup();
     const db = wx.cloud.database('todo-online-lxy')
     const record = db.collection('record')
     let userId = wx.getStorageSync('userId')
+    
 
     record.add({
       data: {
         userId: userId,
         record_date: new Date(),
-        record_matter:select.detail.value
+        record_matter: self.data.selected_matters
       },
       success: function (res) {
-        wx.showToast({ title: '添加成功', icon: 'success', duration: 2000 })
+        wx.showToast({ title: '打卡成功', icon: 'success', duration: 2000 })
+        self.getMyRecords();
+      },
+      fail: function (error) {
+        wx.showToast({
+          title: '打卡失败', duration: 2000
+        })
+      },
+      complete: function () {
+        self.setData({ dialogRecordShow: false })
+        wx.hideLoading();
       }
     })
+  },
+
+  checkboxChange(event) {
+    console.log(event);
+    this.data.selected_matters = event.detail.value
   },
 
   /**
@@ -156,13 +167,13 @@ Page({
       success(res) {
         console.log(res);
         if (res.data) {
-          res.data.forEach(item=>{
+          res.data.forEach(item => {
             item.checked = false
           });
           self.setData({
-            matterArr: res.data
+            matterArr: res.data,
+            dialogRecordShow: true,
           })
-          self.showDialog(e)
         }
       }
     })
@@ -172,20 +183,39 @@ Page({
    * 添加打卡事项
    */
   addMyMatters(event) {
+    if (event.detail.index === 0) {
+      this.setData({ dialogShow: false });
+      return
+    }
     const db = wx.cloud.database('todo-online-lxy')
     const matters = db.collection('matters')
     let userId = wx.getStorageSync('userId')
     if (!userId) {
       getUserid();
     }
+    let self = this;
+    this.setData({ dialogShow: false });
+    wx.showLoading({
+      title: '添加中...',
+    })
     matters.add({
       data: {
         userId: userId,
-        matter_name: '运动2',
+        matter_name: this.data.add_matter,
       },
       success: function (res) {
         wx.showToast({ title: '添加成功', icon: 'success', duration: 2000 })
+        self.matter_dialog.hidePopup();
+      },
+      fail: function (err) {
+        wx.showToast({
+          title: '添加失败', icon: 'none', duration: 2000
+        })
+      },
+      complete: function () {
+        wx.hideLoading()
       }
+
     })
   },
 
@@ -200,18 +230,18 @@ Page({
     let self = this;
     record.where({
       userId: userId,
-      record_date:_.and(_.gt(this.getLastMouthDate(new Date())), _.lt(this.getNextMouthDate(new Date())))
+      record_date: _.and(_.gt(this.getLastMouthDate(new Date())), _.lt(this.getNextMouthDate(new Date())))
     })
       .get({
         success(res) {
           console.log("getRecord", res);
           for (let i = 0; i < self.data.dateArr.length; i++) {
             let nowDate = self.data.dateArr[i].date;
-            if(nowDate === undefined) continue;
+            if (nowDate === undefined) continue;
             for (let j = 0; j < res.data.length; j++) {
               let recordDate = res.data[j].record_date;
-              if (recordDate.getFullYear() === nowDate.getFullYear() && 
-              recordDate.getMonth() === nowDate.getMonth() && recordDate.getDate() === nowDate.getDate()) {
+              if (recordDate.getFullYear() === nowDate.getFullYear() &&
+                recordDate.getMonth() === nowDate.getMonth() && recordDate.getDate() === nowDate.getDate()) {
                 self.data.dateArr[i].isRecord = true;
                 break;
               }
@@ -224,18 +254,39 @@ Page({
       })
   },
 
-  getLastMouthDate(date){
-    var date=new Date(); 
+  getLastMouthDate(date) {
+    var date = new Date();
     date.setDate(1);
     return date;
   },
 
-  getNextMouthDate(date){
-    var date=new Date();
-    var currentMonth=date.getMonth();
-    var nextMonth=++currentMonth;
-    var nextMonthFirstDay=new Date(date.getFullYear(),nextMonth,1);
-    var oneDay=1000*60*60*24;
-    return new Date(nextMonthFirstDay-oneDay);
+  getNextMouthDate(date) {
+    var date = new Date();
+    var currentMonth = date.getMonth();
+    var nextMonth = ++currentMonth;
+    var nextMonthFirstDay = new Date(date.getFullYear(), nextMonth, 1);
+    var oneDay = 1000 * 60 * 60 * 24;
+    return new Date(nextMonthFirstDay - oneDay);
+  },
+
+  showAddDialog() {
+    console.log(this.data.matterArr);
+
+    this.setData({
+      dialogShow: true,
+      dialogRecordShow: false
+    })
+  },
+
+  closeAddDialog() {
+    this.setData({
+      dialogShow: false,
+      dialogRecordShow: true
+    })
+  },
+
+  bindAddInput(event) {
+    this.data.add_matter = event.detail.value
+
   }
 })

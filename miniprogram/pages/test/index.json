@@ -1,5 +1,9 @@
 {
   "usingComponents": {
-    "record-dialog":"../../components/record-dialog/record-dialog"
+    "mp-dialog": "/miniprogram_npm/weui-miniprogram/dialog/dialog",
+    "mp-icon": "/miniprogram_npm/weui-miniprogram/icon/icon",
+    "mp-checkbox-group": "/miniprogram_npm/weui-miniprogram/checkbox-group/checkbox-group",
+    "mp-checkbox": "/miniprogram_npm/weui-miniprogram/checkbox/checkbox",
+    "mp-cells": "/miniprogram_npm/weui-miniprogram/cells/cells"
   }
 }
