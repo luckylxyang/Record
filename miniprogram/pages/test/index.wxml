@@ -2,11 +2,11 @@
 	<view>
 		<view class='date-show'>
 			<view class='lt-arrow' bindtap='lastMonth'>
-				<image class="icon-month-last"></image>
+				<icon class="icon-month-last"></icon> 
 			</view>
 			{{year}}年{{month}}月
 			<view class='rt-arrow' bindtap='nextMonth'>
-				<image class="icon-month-next"></image>
+				<icon class="icon-month-next"></icon>
 			</view>
 		</view>
 	</view>

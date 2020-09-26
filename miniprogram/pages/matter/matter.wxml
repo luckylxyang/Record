@@ -1,0 +1,7 @@
+<view>
+	<view>
+		<mp-checkbox-group bindchange="checkboxChange">
+			<mp-slideview wx:for="{{matterArr}}" wx:key="idx" wx:for-item="item" value="{{item.matter_name}}" checked="{{item.checked}}" label="{{item.matter_name}}" />
+		</mp-checkbox-group>
+	</view>
+</view>

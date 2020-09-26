@@ -123,7 +123,7 @@ Page({
     const db = wx.cloud.database('todo-online-lxy')
     const record = db.collection('record')
     let userId = wx.getStorageSync('userId')
-    
+
 
     record.add({
       data: {
@@ -148,7 +148,6 @@ Page({
   },
 
   checkboxChange(event) {
-    console.log(event);
     this.data.selected_matters = event.detail.value
   },
 
@@ -165,7 +164,6 @@ Page({
       userId: userId
     }).get({
       success(res) {
-        console.log(res);
         if (res.data) {
           res.data.forEach(item => {
             item.checked = false
@@ -187,17 +185,43 @@ Page({
       this.setData({ dialogShow: false });
       return
     }
+    this.setData({ dialogShow: false });
+    wx.showLoading({
+      title: '添加中...',
+    })
+    let self = this;
+    wx.cloud.callFunction({
+      name: 'checkMsg',
+      data: {
+        content: this.data.add_matter,
+        action: 'checkMsgSecurity'
+      },
+      success(res) {
+        console.log("cloud success", res);
+        if(res.result.errCode === 0){
+          self.addMatterToServer();
+        }
+        if(res.result.errCode === 87014){
+          wx.hideLoading();
+          wx.showToast({ title: '内容含有违法违规内容', duration: 2000 })
+        }
+      },
+      fail(res) {
+        wx.hideLoading()
+        console.log("cloud fail", res);
+        wx.showToast({ title: "错误码：" + res.result.errCode + "," + res.result.errMsg, duration: 2000 })
+      }
+    })
+
+  },
+
+  addMatterToServer() {
     const db = wx.cloud.database('todo-online-lxy')
     const matters = db.collection('matters')
     let userId = wx.getStorageSync('userId')
     if (!userId) {
       getUserid();
     }
-    let self = this;
-    this.setData({ dialogShow: false });
-    wx.showLoading({
-      title: '添加中...',
-    })
     matters.add({
       data: {
         userId: userId,
@@ -205,7 +229,6 @@ Page({
       },
       success: function (res) {
         wx.showToast({ title: '添加成功', icon: 'success', duration: 2000 })
-        self.matter_dialog.hidePopup();
       },
       fail: function (err) {
         wx.showToast({
@@ -234,7 +257,6 @@ Page({
     })
       .get({
         success(res) {
-          console.log("getRecord", res);
           for (let i = 0; i < self.data.dateArr.length; i++) {
             let nowDate = self.data.dateArr[i].date;
             if (nowDate === undefined) continue;
@@ -287,6 +309,5 @@ Page({
 
   bindAddInput(event) {
     this.data.add_matter = event.detail.value
-
   }
 })
