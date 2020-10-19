@@ -1,6 +1,10 @@
 {
   "usingComponents": {
     "mp-slideview": "/miniprogram_npm/weui-miniprogram/slideview/slideview",
-    "mp-checkbox-group": "/miniprogram_npm/weui-miniprogram/checkbox-group/checkbox-group"
+    "mp-cell": "/miniprogram_npm/weui-miniprogram/cell/cell",
+    "mp-cells": "/miniprogram_npm/weui-miniprogram/cells/cells",
+    "mp-icon": "/miniprogram_npm/weui-miniprogram/icon/icon",
+    "mp-checkbox-group": "/miniprogram_npm/weui-miniprogram/checkbox-group/checkbox-group",
+    "mp-dialog": "/miniprogram_npm/weui-miniprogram/dialog/dialog"
   }
 }

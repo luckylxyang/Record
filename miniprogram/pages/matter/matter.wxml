@@ -1,7 +1,20 @@
 <view>
+
+	<!-- <view><text class="tip-text" >右滑可以删除</text></view> -->
+	<view class="weui-cells" wx:for="{{matterArr}}" wx:key="idx" wx:for-item="item">
+		<mp-slideview key="{{idx}}" buttons="{{[{ text: '删除',type: 'warn', data:item}]}}" bindbuttontap="slideButtonTap">
+			<mp-cell value="{{item.matter_name}}" footer=""></mp-cell>
+		</mp-slideview>
+	</view>
+	<view class="weui-cells" style="padding:8px;align-content: center;">
+		<mp-icon icon="add" color="black" size="{{25}}" bindtap="showAddDialog" />
+	</view>
+	
 	<view>
-		<mp-checkbox-group bindchange="checkboxChange">
-			<mp-slideview wx:for="{{matterArr}}" wx:key="idx" wx:for-item="item" value="{{item.matter_name}}" checked="{{item.checked}}" label="{{item.matter_name}}" />
-		</mp-checkbox-group>
+		<mp-dialog title="添加打卡事项" show="{{dialogShow}}" bindbuttontap="addMyMatters" buttons="{{buttons}}">
+			<view>
+				<input class="weui-input" value="{{add_matter}}" maxlength='18' bindinput="bindAddInput" focus placeholder="请输入添加的事项" />
+			</view>
+		</mp-dialog>
 	</view>
 </view>

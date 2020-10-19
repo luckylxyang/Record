@@ -5,7 +5,7 @@
 	</view>
 
 	<mp-cells title=' '>
-		<mp-cell link hover url="" value="记录" footer="" >
+		<mp-cell link hover url="../history/history" value="记录" footer="" >
 		</mp-cell>
 		<mp-cell link hover url="../matter/matter" value="事项管理" footer="" >
 		</mp-cell>

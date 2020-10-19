@@ -1,1 +1,6 @@
 /* pages/matter/matter.wxss */
+
+.tip-text{
+  text-align: center;
+  size: 8px;
+}

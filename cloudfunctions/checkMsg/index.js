@@ -26,7 +26,6 @@ exports.main = async (event, context) => {
 
 async function checkMsgSecurity(event) {
   console.log("cloud method",event);
-  const log = cloud.logger()
   return cloud.openapi.security.msgSecCheck({
     content: event.content,
   })

@@ -17,10 +17,10 @@
 		</view>
 	</view>
 	<view class='date-box'>
-		<view wx:for='{{dateArr}}' wx:key="idx" class='{{isToday == item.isToday ? "nowDay" : ""}}' data-date='{{item.isToday}}'>
-			<view class='date-head'>
+		<view  wx:for='{{dateArr}}' wx:key="index" class='{{isToday === item.isToday ? "nowDay" : ""}}' >
+			<view class='date-head' >
 				<!-- <view wx:if="{{item.isRecord}}">*</view> -->
-				<view class='{{item.isRecord ? "record":""}}'>{{item.dateNum}}</view>
+				<view bindtap="showRecord" data-index="{{index}}" class='{{item.isRecord ? "record":""}}'>{{item.dateNum}}</view>
 			</view>
 		</view>
 	</view>
@@ -42,6 +42,14 @@
 		<mp-dialog title="添加打卡事项" show="{{dialogShow}}" bindbuttontap="addMyMatters" buttons="{{buttons}}">
 			<view>
 				<input class="weui-input" value="{{add_matter}}" maxlength='18' bindinput="bindAddInput" focus placeholder="请输入添加的事项" />
+			</view>
+		</mp-dialog>
+	</view>
+
+		<view>
+		<mp-dialog title="每日打卡" show="{{dialogHistoryShow}}" bindbuttontap="hideHistoryDialog" buttons="{{historyButton}}" >
+			<view>
+				<text wx:for="{{historyArr}}" wx:key="idx" wx:for-item="item" >{{item}}</text>
 			</view>
 		</mp-dialog>
 	</view>

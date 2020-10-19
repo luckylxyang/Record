@@ -2,6 +2,7 @@
   "usingComponents": {
     "user":"../heard/user",
     "my-matter":"../matter/matter",
+    "my-history":"../history/history",
     "mp-cells": "/miniprogram_npm/weui-miniprogram/cells/cells",
     "mp-cell": "/miniprogram_npm/weui-miniprogram/cell/cell"
   }

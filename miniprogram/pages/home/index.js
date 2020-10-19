@@ -1,4 +1,5 @@
 import { checkScope, getUserid } from '../../lib/login'
+import { diffDateOnToday } from '../../lib/utils'
 
 Page({
   data: {
@@ -14,22 +15,24 @@ Page({
     buttons: [{ text: '取消' }, { text: '确定' }],
     add_matter: '',//保存用户添加的事项
     dialogRecordShow: false,
-    buttons: [{ text: '取消' }, { text: '确定' }],
-    selected_matters: []//记录用户打卡勾选的事项
+    selected_matters: [],//记录用户打卡勾选的事项
+    dialogHistoryShow: false,
+    historyButton: [{ text: '确定' }],
+    historyArr: [],
   },
 
   onReady: function () {
   },
   onLoad: function () {
-    let now = new Date();
-    let year = now.getFullYear();
-    let month = now.getMonth() + 1;
+    let today = new Date();
+    let year = today.getFullYear();
+    let month = today.getMonth() + 1;
     this.dateInit();
-    this.getMyRecords();
+    this.getMyRecords(today);
     this.setData({
       year: year,
       month: month,
-      isToday: '' + year + month + now.getDate()
+      isToday: '' + year + month + today.getDate()
     })
   },
   dateInit: function (setYear, setMonth) {
@@ -58,6 +61,8 @@ Page({
           isToday: '' + year + (month + 1) + num,
           dateNum: num,
           weight: 5,
+          isRecord: false,
+          matters:[],
           date: new Date(year, month, num)
         }
       } else {
@@ -98,6 +103,7 @@ Page({
       month: (month + 1)
     })
     this.dateInit(year, month);
+    this.getMyRecords(new Date(year,month));
   },
 
   nextMonth: function () {
@@ -109,6 +115,7 @@ Page({
       month: (month + 1)
     })
     this.dateInit(year, month);
+    this.getMyRecords(new Date(year,month));
   },
 
   onRecord: function (event) {
@@ -123,8 +130,6 @@ Page({
     const db = wx.cloud.database('todo-online-lxy')
     const record = db.collection('record')
     let userId = wx.getStorageSync('userId')
-
-
     record.add({
       data: {
         userId: userId,
@@ -133,7 +138,7 @@ Page({
       },
       success: function (res) {
         wx.showToast({ title: '打卡成功', icon: 'success', duration: 2000 })
-        self.getMyRecords();
+        self.getMyRecords(new Date());
       },
       fail: function (error) {
         wx.showToast({
@@ -197,18 +202,16 @@ Page({
         action: 'checkMsgSecurity'
       },
       success(res) {
-        console.log("cloud success", res);
-        if(res.result.errCode === 0){
+        if (res.result.errCode === 0) {
           self.addMatterToServer();
         }
-        if(res.result.errCode === 87014){
+        if (res.result.errCode === 87014) {
           wx.hideLoading();
           wx.showToast({ title: '内容含有违法违规内容', duration: 2000 })
         }
       },
       fail(res) {
         wx.hideLoading()
-        console.log("cloud fail", res);
         wx.showToast({ title: "错误码：" + res.result.errCode + "," + res.result.errMsg, duration: 2000 })
       }
     })
@@ -245,7 +248,7 @@ Page({
   /**
    * 获取我的打卡记录
    */
-  getMyRecords: function () {
+  getMyRecords: function (date) {
     const db = wx.cloud.database('todo-online-lxy')
     const record = db.collection('record')
     const _ = db.command
@@ -253,7 +256,7 @@ Page({
     let self = this;
     record.where({
       userId: userId,
-      record_date: _.and(_.gt(this.getLastMouthDate(new Date())), _.lt(this.getNextMouthDate(new Date())))
+      record_date: _.and(_.gt(this.getLastMouthDate(date)), _.lt(this.getNextMouthDate(date)))
     })
       .get({
         success(res) {
@@ -265,6 +268,7 @@ Page({
               if (recordDate.getFullYear() === nowDate.getFullYear() &&
                 recordDate.getMonth() === nowDate.getMonth() && recordDate.getDate() === nowDate.getDate()) {
                 self.data.dateArr[i].isRecord = true;
+                self.data.dateArr[i].matters.push(res.data[j].record_matter)
                 break;
               }
             }
@@ -276,14 +280,21 @@ Page({
       })
   },
 
+  /**
+   * 获取给定时间的所在月第一天
+   * @param {时间} date 
+   */
   getLastMouthDate(date) {
-    var date = new Date();
-    date.setDate(1);
-    return date;
+    let d = new Date(date)
+    d.setDate(1);
+    return d;
   },
 
+  /**
+   * 获取给定时间的所在月最后一天
+   * @param {*} date 
+   */
   getNextMouthDate(date) {
-    var date = new Date();
     var currentMonth = date.getMonth();
     var nextMonth = ++currentMonth;
     var nextMonthFirstDay = new Date(date.getFullYear(), nextMonth, 1);
@@ -292,8 +303,6 @@ Page({
   },
 
   showAddDialog() {
-    console.log(this.data.matterArr);
-
     this.setData({
       dialogShow: true,
       dialogRecordShow: false
@@ -309,5 +318,34 @@ Page({
 
   bindAddInput(event) {
     this.data.add_matter = event.detail.value
+  },
+
+  showRecord(event) {
+    let item = this.data.dateArr[event.target.dataset.index]
+    let diff = diffDateOnToday(item.date);
+    if (diff === 0) {
+      this.getMyMatters();
+      return;
+    } else if (diff === -1) {
+      // 今天之前的时间，如果已经打卡就显示记录，未打卡则不响应
+      if (item.isRecord) {
+        this.showHistoryRecordDialog(item);
+      }
+    } else {
+      // 比当天及更晚的时间，不需要响应
+    }
+  },
+
+  showHistoryRecordDialog(item) {
+    console.log(item);
+    
+    this.setData({ 
+      dialogHistoryShow: true,
+      historyArr:item.matters
+     });
+  },
+
+  hideHistoryDialog(event) {
+    this.setData({ dialogHistoryShow: false });
   }
 })
